@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define FILENAME "contacts.txt"
+
 typedef struct {
     char name[20];
     char phone[20];
@@ -74,8 +76,37 @@ void modifyContact() {
     printf("修改好啦~\n");
 }
 
+/* 第三步新增：启动时从文件读回联系人。
+   文件不存在就是第一次运行，不是错误，静悄悄地从空通讯录开始。*/
+void loadContacts() {
+    FILE *fp = fopen(FILENAME, "r");
+    if (fp == NULL) return;
+    while (count < 100 &&
+           fscanf(fp, "%19s %19s %d",
+                  contacts[count].name,
+                  contacts[count].phone,
+                  &contacts[count].age) == 3) {
+        count++;
+    }
+    fclose(fp);
+    if (count > 0)
+        printf("从文件读回了 %d 位联系人~\n", count);
+}
+
+/* 第三步新增：退出时把联系人存进文件，一行存一个人。*/
+void saveContacts() {
+    FILE *fp = fopen(FILENAME, "w");
+    int i;
+    if (fp == NULL) { printf("保存失败啦，文件打不开呢~\n"); return; }
+    for (i = 0; i < count; i++)
+        fprintf(fp, "%s %s %d\n", contacts[i].name, contacts[i].phone, contacts[i].age);
+    fclose(fp);
+    printf("已经存进 %s 啦，下次打开还在~\n", FILENAME);
+}
+
 int main() {
     int choice;
+    loadContacts();
     do {
         printf("\n--- 通讯录 ---\n1. 添加  2. 显示全部  3. 查找  4. 删除  5. 修改  0. 退出\n请选择：");
         scanf("%d", &choice);
@@ -86,6 +117,7 @@ int main() {
         else if (choice == 5) modifyContact();
         else if (choice != 0) printf("没有这个选项呀，再选一次呢~\n");
     } while (choice != 0);
+    saveContacts();
     printf("下次见咯~\n");
     return 0;
 }
